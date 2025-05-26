@@ -4,11 +4,11 @@ tags: []
 
 ---
 
-# Khóa Học React Developer
+# Khóa Học Frontend Developer
 
 ## Thông Tin Khóa Học
 
-- **Mục Tiêu**: Trở thành React Developer
+- **Mục Tiêu**: Trở thành Frontend Developer
 - **Sản Phẩm Đầu Ra**: Ứng dụng TodoList
 - **Thời Gian**: 2 tháng
 
