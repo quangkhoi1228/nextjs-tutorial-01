@@ -1,3 +1,9 @@
+---
+noteId: "3cddd6403a3e11f0ac5de1fcd929b28d"
+tags: []
+
+---
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
