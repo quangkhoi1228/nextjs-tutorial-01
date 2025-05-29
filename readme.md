@@ -4,11 +4,11 @@ tags: []
 
 ---
 
-# Khóa Học Frontend Developer
+# Khóa Học ReactJS Developer với Typescript
 
 ## Thông Tin Khóa Học
 
-- **Mục Tiêu**: Trở thành Frontend Developer
+- **Mục Tiêu**: Trở thành ReactJS Developer
 - **Sản Phẩm Đầu Ra**: Ứng dụng TodoList
 - **Thời Gian**: 2 tháng
 
@@ -29,5 +29,5 @@ tags: []
 
 ## Khoá tiếp theo
 
-1. Khoá học Junior Frontend Developer (NextJS, Redux)
+1. Khoá học Junior ReactJS Developer (NextJS, Redux)
 2. Khoá học Junior Backend Developer (NestJS, PostgreSQL)
