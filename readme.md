@@ -20,23 +20,7 @@ tags: []
 
 ## Nội Dung Khóa Học
 
-### 1. Kiến Thức Nền Tảng
-
-1. Virtual DOM
-2. State Management
-3. Components
-4. Props
-5. Destructuring
-
-### 2. React Hooks
-
-1. useState
-2. useEffect
-3. useRef
-4. useContext
-5. useReducer
-6. useCallback
-7. useMemo
+- Tài liệu khoá học: https://docs.quangkhoi1228.com/lap-trinh-reactjs
 
 ## Liên Hệ
 
