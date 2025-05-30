@@ -48,9 +48,13 @@ export class MovieService {
   }
 
   updateMovie(id: number, updateMovieDto: UpdateMovieDto): Movie {
-    let movie = this.getMovieById(id);
-    movie = { ...movie, ...updateMovieDto };
-    return movie;
+    const movie = this.getMovieById(id);
+    const updatedMovie: Movie = { ...movie, ...updateMovieDto };
+
+    this.movies = this.movies.map((movie) =>
+      movie.id === id ? updatedMovie : movie,
+    );
+    return updatedMovie;
   }
 
   deleteMovie(id: number): boolean {
