@@ -1,10 +1,22 @@
-export type Movie = {
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+
+@Entity()
+export class Movie {
+  @PrimaryGeneratedColumn()
   id: number;
+
+  @Column()
   name: string;
+
+  @Column()
   fromDate: Date;
+
+  @Column()
   toDate: Date;
+
+  @Column()
   is18Plus: boolean;
-};
+}
 
 // export type MovieType = {
 //   id: number; // id phim
