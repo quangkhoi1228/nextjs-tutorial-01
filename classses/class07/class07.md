@@ -24,3 +24,9 @@ Bởi vì tính chất useEffect biết được các thời điểm quan trọn
 ```sh
   useEffect(hàm_chứa_logic_code_thực_thi,  các_biến_ràng_buộc_quy_định_khi_nào_logic_code_được_thực_thi);
 ```
+
+## Homework
+
+1. Xây backend cho movie (CURD, search)
+2. Xây lại giao diện trang movie list
+3. Tích hợp API backend và frontend
