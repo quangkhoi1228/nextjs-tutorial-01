@@ -1,19 +1,13 @@
 'use client';
-
-import React from 'react';
-import Title from './components/Title';
-import UtilityContainer from './components/UtilityContainer';
-import AddNewButton from './components/AddNewButton';
-
+import TableMovie from './components/TableMovie';
+import Tilte from './components/Tilte';
 function MoviePage() {
   return (
-    <section className=' bg-white h-screen text-black'>
-      <Title />
-      <UtilityContainer>
-        <AddNewButton />
-      </UtilityContainer>
+    <section className='bg-white h-screen text-black'>
+      <Tilte />
+
+      <TableMovie />
     </section>
   );
 }
-
 export default MoviePage;

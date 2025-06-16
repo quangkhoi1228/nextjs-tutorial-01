@@ -1,7 +1,10 @@
-import React from 'react';
+import React from 'react'
 
-function UtilityContainer({ children }: { children: React.ReactNode }) {
-  return <div>{children}</div>;
+export default function UtilityContainer({ children }: { children: React.ReactNode }
+
+) {
+  return (
+    <div className="flex flex-col items-center  px-4 py-2 ">{children}</div>
+  )
 }
 
-export default UtilityContainer;
