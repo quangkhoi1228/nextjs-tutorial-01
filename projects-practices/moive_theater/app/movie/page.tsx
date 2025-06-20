@@ -25,15 +25,14 @@ function MoviePage() {
 
   const { isAuthenticated, login } = useAuth();
 
-  console.log(isAuthenticated);
-
   useEffect(() => {
+    console.log(isAuthenticated);
     if (!isAuthenticated) {
       login();
     }
   }, [isAuthenticated, login]);
 
-  return (
+  return isAuthenticated ? (
     <section className='bg-white h-screen text-black overflow-y-auto'>
       <Tilte />
       <UtilityContainer>
@@ -65,6 +64,8 @@ function MoviePage() {
         onSuccess={refreshData}
       />
     </section>
+  ) : (
+    <div>Loading...</div>
   );
 }
 
