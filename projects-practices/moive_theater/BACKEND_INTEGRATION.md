@@ -1,3 +1,9 @@
+---
+noteId: "e69459204dd511f08bebbb44502fdbb2"
+tags: []
+
+---
+
 # Backend Integration Guide
 
 ## Tổng quan

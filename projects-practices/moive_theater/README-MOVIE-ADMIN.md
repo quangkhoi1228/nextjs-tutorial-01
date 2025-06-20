@@ -1,3 +1,9 @@
+---
+noteId: "e69480304dd511f08bebbb44502fdbb2"
+tags: []
+
+---
+
 # Movie Admin Management System
 
 ## Tổng quan

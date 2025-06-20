@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://benestjs-production.up.railway.app';
 
 // Types based on NestJS backend entities
 export interface Movie {
@@ -97,7 +97,7 @@ export interface PaginatedResponse<T> {
 }
 
 // API Response wrapper
-interface   ApiResponse<T> {
+interface ApiResponse<T> {
   success: boolean;
   data: T;
   message?: string;
@@ -117,13 +117,14 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
-    
+
     const defaultHeaders = {
       'Content-Type': 'application/json',
       // Add JWT token if available
-      ...(typeof window !== 'undefined' && localStorage.getItem('token') && {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      })
+      ...(typeof window !== 'undefined' &&
+        localStorage.getItem('token') && {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        }),
     };
 
     const config: RequestInit = {
@@ -136,10 +137,12 @@ class ApiClient {
 
     try {
       const response = await fetch(url, config);
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(
+          errorData.message || `HTTP ${response.status}: ${response.statusText}`
+        );
       }
 
       const data = await response.json();
@@ -164,7 +167,7 @@ class ApiClient {
   async patch<T>(endpoint: string, data?: any): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'PATCH',
-      body:  data ? JSON.stringify(data) : undefined,
+      body: data ? JSON.stringify(data) : undefined,
     });
   }
 
@@ -186,18 +189,23 @@ const apiClient = new ApiClient(API_BASE_URL);
 // Movie Service
 export class MovieService {
   // Get all movies with pagination
-  static async getAllMovies(params: MovieSearchParams = {}): Promise<PaginatedResponse<Movie>> {
+  static async getAllMovies(
+    params: MovieSearchParams = {}
+  ): Promise<PaginatedResponse<Movie>> {
     try {
-      const response = await apiClient.get<PaginatedResponse<Movie>>('/movies', {
-        params: {
-          page: params.page || 1,
-          limit: params.limit || 10,
-          search: params.search,
-          status: params.status,
-          from_date: params.from_date?.toISOString(),
-          to_date: params.to_date?.toISOString(),
+      const response = await apiClient.get<PaginatedResponse<Movie>>(
+        '/movies',
+        {
+          params: {
+            page: params.page || 1,
+            limit: params.limit || 10,
+            search: params.search,
+            status: params.status,
+            from_date: params.from_date?.toISOString(),
+            to_date: params.to_date?.toISOString(),
+          },
         }
-      });
+      );
       return response;
     } catch (error) {
       console.error('Error fetching movies:', error);
@@ -219,7 +227,10 @@ export class MovieService {
   // Create new movie
   static async createMovie(movieData: CreateMovieDto): Promise<Movie> {
     try {
-      const response = await apiClient.post<ApiResponse<Movie>>('/movies', movieData);
+      const response = await apiClient.post<ApiResponse<Movie>>(
+        '/movies',
+        movieData
+      );
       return response.data;
     } catch (error) {
       console.error('Error creating movie:', error);
@@ -228,9 +239,15 @@ export class MovieService {
   }
 
   // Update movie
-  static async updateMovie(id: number, movieData: Partial<CreateMovieDto>): Promise<Movie> {
+  static async updateMovie(
+    id: number,
+    movieData: Partial<CreateMovieDto>
+  ): Promise<Movie> {
     try {
-      const response = await apiClient.patch<ApiResponse<Movie>>(`/movies/${id}`, movieData);
+      const response = await apiClient.patch<ApiResponse<Movie>>(
+        `/movies/${id}`,
+        movieData
+      );
       return response.data;
     } catch (error) {
       console.error('Error updating movie:', error);
@@ -249,17 +266,24 @@ export class MovieService {
   }
 
   // Upload image
-  static async uploadImage(file: File, type: 'thumbnail' | 'banner'): Promise<{ url: string }> {
+  static async uploadImage(
+    file: File,
+    type: 'thumbnail' | 'banner'
+  ): Promise<{ url: string }> {
     try {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('type', type);
 
-      const response = await apiClient.post<{ url: string }>('/movies/upload-image', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = await apiClient.post<{ url: string }>(
+        '/movies/upload-image',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
       return response;
     } catch (error) {
       console.error('Error uploading image:', error);
@@ -270,9 +294,12 @@ export class MovieService {
   // Search movies
   static async searchMovies(query: string): Promise<Movie[]> {
     try {
-      const response = await apiClient.get<ApiResponse<Movie[]>>(`/movies/search`, {
-        params: { q: query }
-      });
+      const response = await apiClient.get<ApiResponse<Movie[]>>(
+        `/movies/search`,
+        {
+          params: { q: query },
+        }
+      );
       return response.data;
     } catch (error) {
       console.error('Error searching movies:', error);
@@ -357,7 +384,9 @@ export class VersionService {
 
   static async getVersionById(id: number): Promise<Version> {
     try {
-      const response = await apiClient.get<ApiResponse<Version>>(`/versions/${id}`);
+      const response = await apiClient.get<ApiResponse<Version>>(
+        `/versions/${id}`
+      );
       return response.data;
     } catch (error) {
       console.error('Error fetching version:', error);
@@ -370,7 +399,9 @@ export class VersionService {
 export class ScheduleService {
   static async getSchedulesByMovie(movieId: number): Promise<Schedule[]> {
     try {
-      const response = await apiClient.get<ApiResponse<Schedule[]>>(`/schedule/movie/${movieId}`);
+      const response = await apiClient.get<ApiResponse<Schedule[]>>(
+        `/schedule/movie/${movieId}`
+      );
       return response.data;
     } catch (error) {
       console.error('Error fetching schedules:', error);
@@ -388,5 +419,5 @@ export const API_CONFIG = {
     gerne: '/gernes',
     version: '/versions',
     schedule: '/schedule',
-  }
-}; 
+  },
+};
