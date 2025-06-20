@@ -26,18 +26,18 @@ export default function TableMovie2({ data = [], columns = [] }: { data: any[]; 
                                                 <Info className="w-4 h-4 text-white" />
                                             </div>
                                             <span>Seat detail</span>
-                                                </div>
-                                            ):(
-                                            item[col.key]
-                  )}
+                                        </div>
+                                    ) : (
+                                        item[col.key]
+                                    )}
 
-                                        </td>
+                                </td>
 
-                                    ))}
-                                </tr>
                             ))}
-        </tbody>
-      </table>
-    </div>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
     )
 }
