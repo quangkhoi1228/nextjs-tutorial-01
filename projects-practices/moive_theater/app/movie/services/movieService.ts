@@ -349,6 +349,11 @@ export class MovieService {
         '/movies',
         serializedData
       );
+
+      // call lại API cập nhật data mới 
+      await this.getAllMovies();
+
+      
       return response.data;
     } catch (error) {
       console.error('Error creating movie:', error);
