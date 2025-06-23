@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import { X, Calendar, Clock, MapPin, Users, Film, Play } from 'lucide-react';
-import { Movie } from '../../services/movieService';
+import { Movie } from '../services/movieService';
 
 interface MovieDetailModalProps {
   isOpen: boolean;
@@ -31,8 +31,9 @@ export default function MovieDetailModal({ isOpen, onClose, movie }: MovieDetail
 
   const getStatusText = () => {
     if (movie.is_deleted) return 'Đã xóa';
-    if (new Date(movie.to_date) < new Date()) return 'Đã kết thúc';
-    if (new Date(movie.from_date) > new Date()) return 'Sắp chiếu';
+    const now = new Date();
+    if (new Date(movie.to_date) < now) return 'Đã kết thúc';
+    if (new Date(movie.from_date) > now) return 'Sắp chiếu';
     return 'Đang chiếu';
   };
 

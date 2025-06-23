@@ -1,7 +1,8 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { X, Save, Loader2 } from 'lucide-react';
-import { Movie, CreateMovieDto, MovieService } from '../../services/movieService';
+import { Movie, CreateMovieDto, MovieService } from '../services/movieService';
+import { useAuth } from '../hooks/useAuth';
 
 interface MovieModalProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface MovieModalProps {
 }
 
 export default function MovieModal({ isOpen, onClose, movie, onSuccess }: MovieModalProps) {
+  const { isAuthenticated, token, login } = useAuth();
   const [formData, setFormData] = useState<CreateMovieDto>({
     name: '',
     content: '',
@@ -85,12 +87,37 @@ export default function MovieModal({ isOpen, onClose, movie, onSuccess }: MovieM
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      return;
+    }
 
     setLoading(true);
     try {
+      // Ensure we have authentication
+      if (!isAuthenticated || !token) {
+        console.log('Not authenticated, attempting to login...');
+        await login();
+      }
+      
+      console.log('Submitting form data:', formData);
+      console.log('Form data types:', {
+        name: typeof formData.name,
+        content: typeof formData.content,
+        director: typeof formData.director,
+        duration: typeof formData.duration,
+        from_date: typeof formData.from_date,
+        to_date: typeof formData.to_date,
+        production_company: typeof formData.production_company,
+        thumbnail: typeof formData.thumbnail,
+        banner: typeof formData.banner,
+      });
+      console.log('Current token:', token ? `${token.substring(0, 20)}...` : 'No token');
+      
       if (movie) {
-        await MovieService.updateMovie(movie.id, formData);
+        await MovieService.updateMovie(movie.id,{
+          ...formData,
+          is_deleted: false,
+        } );
       } else {
         await MovieService.createMovie(formData);
       }
@@ -98,7 +125,14 @@ export default function MovieModal({ isOpen, onClose, movie, onSuccess }: MovieM
       onClose();
     } catch (error) {
       console.error('Error saving movie:', error);
-      alert('Có lỗi xảy ra khi lưu phim');
+      
+      // Hiển thị lỗi chi tiết hơn
+      let errorMessage = 'Có lỗi xảy ra khi lưu phim';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      alert(`Lỗi: ${errorMessage}`);
     } finally {
       setLoading(false);
     }

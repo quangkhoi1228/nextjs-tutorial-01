@@ -1,5 +1,5 @@
 // API Configuration
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://benestjs-production.up.railway.app';
+  export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 // Types based on NestJS backend entities
 export interface Movie {
@@ -104,6 +104,42 @@ interface ApiResponse<T> {
   error?: string;
 }
 
+// Helper function to serialize data for API requests
+function serializeData(data: any): any {
+  if (data === null || data === undefined) {
+    return null;
+  }
+  
+  if (data instanceof Date) {
+    // Format date as YYYY-MM-DD for backend compatibility
+    const year = data.getFullYear();
+    const month = String(data.getMonth() + 1).padStart(2, '0');
+    const day = String(data.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+  
+  if (typeof data === 'string' && data.trim() === '') {
+    return null;
+  }
+  
+  if (Array.isArray(data)) {
+    return data.map(serializeData).filter(item => item !== null);
+  }
+  
+  if (typeof data === 'object') {
+    const serialized: any = {};
+    for (const [key, value] of Object.entries(data)) {
+      const serializedValue = serializeData(value);
+      if (serializedValue !== null) {
+        serialized[key] = serializedValue;
+      }
+    }
+    return serialized;
+  }
+  
+  return data;
+}
+
 // HTTP Client with error handling
 class ApiClient {
   private baseURL: string;
@@ -114,17 +150,39 @@ class ApiClient {
 
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    params?: Record<string, any>
   ): Promise<T> {
-    const url = `${this.baseURL}${endpoint}`;
+    let url = `${this.baseURL}${endpoint}`;
+    
+    // Add query parameters if provided
+    if (params) {
+      const searchParams = new URLSearchParams();
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          searchParams.append(key, String(value));
+        }
+      });
+      const queryString = searchParams.toString();
+      if (queryString) {
+        url += `?${queryString}`;
+      }
+    }
 
-    const defaultHeaders = {
-      'Content-Type': 'application/json',
+    // Determine if we're sending FormData
+    const isFormData = options.body instanceof FormData;
+    
+    // Get token for debugging
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    console.log('Auth token:', token ? `${token.substring(0, 20)}...` : 'No token');
+    
+    const defaultHeaders: Record<string, string> = {
+      // Don't set Content-Type for FormData, let the browser set it with boundary
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
       // Add JWT token if available
-      ...(typeof window !== 'undefined' &&
-        localStorage.getItem('token') && {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        }),
+      ...(token && {
+        Authorization: `Bearer ${token}`,
+      }),
     };
 
     const config: RequestInit = {
@@ -136,13 +194,41 @@ class ApiClient {
     };
 
     try {
+      console.log(`Making request to: ${url}`, { 
+        method: options.method, 
+        body: isFormData ? '[FormData]' : options.body,
+        headers: config.headers
+      });
+      
       const response = await fetch(url, config);
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || `HTTP ${response.status}: ${response.statusText}`
-        );
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        let errorDetails = '';
+        
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || errorMessage;
+          errorDetails = JSON.stringify(errorData, null, 2);
+        } catch (parseError) {
+          // If we can't parse JSON, try to get text
+          try {
+            errorDetails = await response.text();
+          } catch (textError) {
+            errorDetails = 'Could not read response body';
+          }
+        }
+        
+        console.error(`API Error (${endpoint}):`, {
+          status: response.status,
+          statusText: response.statusText,
+          message: errorMessage,
+          details: errorDetails,
+          url: url,
+          requestBody: options.body
+        });
+        
+        throw new Error(`${errorMessage}\n\nDetails: ${errorDetails}`);
       }
 
       const data = await response.json();
@@ -153,33 +239,42 @@ class ApiClient {
     }
   }
 
-  async get<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'GET' });
+  async get<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
+    return this.request<T>(endpoint, { method: 'GET' }, params);
   }
 
-  async post<T>(endpoint: string, data?: any): Promise<T> {
+  async post<T>(endpoint: string, data?: any, params?: Record<string, any>): Promise<T> {
+    const isFormData = data instanceof FormData;
+    const body = isFormData ? data : (data ? JSON.stringify(data) : undefined);
+    
     return this.request<T>(endpoint, {
       method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
-    });
+      body: body,
+    }, params);
   }
 
-  async patch<T>(endpoint: string, data?: any): Promise<T> {
+  async patch<T>(endpoint: string, data?: any, params?: Record<string, any>): Promise<T> {
+    const isFormData = data instanceof FormData;
+    const body = isFormData ? data : (data ? JSON.stringify(data) : undefined);
+    
     return this.request<T>(endpoint, {
       method: 'PATCH',
-      body: data ? JSON.stringify(data) : undefined,
-    });
+      body: body,
+    }, params);
   }
 
-  async delete<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'DELETE' });
+  async delete<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
+    return this.request<T>(endpoint, { method: 'DELETE' }, params);
   }
 
-  async put<T>(endpoint: string, data?: any): Promise<T> {
+  async put<T>(endpoint: string, data?: any, params?: Record<string, any>): Promise<T> {
+    const isFormData = data instanceof FormData;
+    const body = isFormData ? data : (data ? JSON.stringify(data) : undefined);
+    
     return this.request<T>(endpoint, {
       method: 'PUT',
-      body: data ? JSON.stringify(data) : undefined,
-    });
+      body: body,
+    }, params);
   }
 }
 
@@ -193,18 +288,18 @@ export class MovieService {
     params: MovieSearchParams = {}
   ): Promise<PaginatedResponse<Movie>> {
     try {
+      const queryParams = {
+        page: params.page || 1,
+        limit: params.limit || 10,
+        search: params.search,
+        status: params.status,
+        from_date: params.from_date?.toISOString(),
+        to_date: params.to_date?.toISOString(),
+      };
+      
       const response = await apiClient.get<PaginatedResponse<Movie>>(
         '/movies',
-        {
-          params: {
-            page: params.page || 1,
-            limit: params.limit || 10,
-            search: params.search,
-            status: params.status,
-            from_date: params.from_date?.toISOString(),
-            to_date: params.to_date?.toISOString(),
-          },
-        }
+        queryParams
       );
       return response;
     } catch (error) {
@@ -227,9 +322,32 @@ export class MovieService {
   // Create new movie
   static async createMovie(movieData: CreateMovieDto): Promise<Movie> {
     try {
+      console.log('Creating movie with data:', movieData);
+      
+      // Validate required fields
+      const requiredFields = ['name', 'content', 'director', 'duration', 'production_company', 'thumbnail', 'banner'];
+      const missingFields = requiredFields.filter(field => !movieData[field as keyof CreateMovieDto]);
+      
+      if (missingFields.length > 0) {
+        throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+      }
+      
+      // Validate dates
+      if (!movieData.from_date || !movieData.to_date) {
+        throw new Error('Both from_date and to_date are required');
+      }
+      
+      if (movieData.from_date >= movieData.to_date) {
+        throw new Error('to_date must be after from_date');
+      }
+      
+      // Serialize the data to handle Date objects properly
+      const serializedData = serializeData(movieData);
+      console.log('Serialized data:', serializedData);
+      
       const response = await apiClient.post<ApiResponse<Movie>>(
         '/movies',
-        movieData
+        serializedData
       );
       return response.data;
     } catch (error) {
@@ -238,13 +356,14 @@ export class MovieService {
     }
   }
 
+  
   // Update movie
   static async updateMovie(
     id: number,
     movieData: Partial<CreateMovieDto>
   ): Promise<Movie> {
     try {
-      const response = await apiClient.patch<ApiResponse<Movie>>(
+      const response = await apiClient.put<ApiResponse<Movie>>(
         `/movies/${id}`,
         movieData
       );
@@ -277,12 +396,7 @@ export class MovieService {
 
       const response = await apiClient.post<{ url: string }>(
         '/movies/upload-image',
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
+        formData
       );
       return response;
     } catch (error) {
@@ -296,9 +410,7 @@ export class MovieService {
     try {
       const response = await apiClient.get<ApiResponse<Movie[]>>(
         `/movies/search`,
-        {
-          params: { q: query },
-        }
+        { q: query }
       );
       return response.data;
     } catch (error) {

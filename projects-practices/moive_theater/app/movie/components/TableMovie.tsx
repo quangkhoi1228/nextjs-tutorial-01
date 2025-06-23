@@ -1,10 +1,10 @@
 'use client';
 import React from 'react';
 import { Edit, Trash2, Eye, Calendar, Clock, Users, Info } from 'lucide-react';
-import { Movie } from '../../services/movieService';
+import { Movie } from '../services/movieService';
 import MovieModal from './MovieModal';
 import MovieDetailModal from './MovieDetailModal';
-import { useMovieManagement } from '../../hooks/useMovieManagement';
+import { useMovieManagement } from '../hooks/useMovieManagement';
 
 export default function TableMovie() {
   const {
@@ -94,7 +94,9 @@ export default function TableMovie() {
               <div>
                 <p className="text-sm text-gray-600">Đang chiếu</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {Array.isArray(movies) ? movies.filter(m => new Date(m.to_date) >= new Date()).length : 0}
+                  {Array.isArray(movies)
+                    ? movies.filter(m => new Date(m.from_date) <= new Date() && new Date(m.to_date) >= new Date()).length
+                    : 0}
                 </p>
               </div>
             </div>
@@ -135,6 +137,10 @@ export default function TableMovie() {
                 <th className='px-4 py-2 text-left font-bold'>Độ tuổi</th>
                 <th className='px-4 py-2 text-left font-bold'>Quốc gia</th>
                 <th className='px-4 py-2 text-left font-bold'>Ngày chiếu</th>
+                {/* Nếu muốn hiển thị thêm diễn viên/thể loại/phiên bản thì bỏ comment các dòng dưới */}
+                {/* <th className='px-4 py-2 text-left font-bold'>Diễn viên</th> */}
+                {/* <th className='px-4 py-2 text-left font-bold'>Thể loại</th> */}
+                {/* <th className='px-4 py-2 text-left font-bold'>Phiên bản</th> */}
                 <th className='px-4 py-2 text-left font-bold'>Trạng thái</th>
                 <th className='px-4 py-2 text-left font-bold'>Thao tác</th>
               </tr>
@@ -152,7 +158,7 @@ export default function TableMovie() {
                       className="w-16 h-20 object-cover rounded-md cursor-pointer"
                       onClick={() => handleViewDetail(movie)}
                       onError={(e) => {
-                        e.currentTarget.src = 'https://via.placeholder.com/64x80/cccccc/666666?text=No+Image';
+                        e.currentTarget.src = '';
                       }}
                     />
                   </td>
@@ -178,6 +184,25 @@ export default function TableMovie() {
                       <div>Đến: {formatDate(movie.to_date)}</div>
                     </div>
                   </td>
+                  {/* Nếu muốn hiển thị thêm diễn viên/thể loại/phiên bản thì bỏ comment các dòng dưới */}
+                  {/* <td className='px-4 py-2'>
+                    {Array.isArray(movie.actors) && movie.actors.length > 0
+                      ? movie.actors.map(a => a.name).join(', ')
+                      : <span className="text-gray-400">Không có</span>
+                    }
+                  </td>
+                  <td className='px-4 py-2'>
+                    {Array.isArray(movie.gernes) && movie.gernes.length > 0
+                      ? movie.gernes.map(g => g.name || g.genre_name).join(', ')
+                      : <span className="text-gray-400">Không có</span>
+                    }
+                  </td>
+                  <td className='px-4 py-2'>
+                    {Array.isArray(movie.versions) && movie.versions.length > 0
+                      ? movie.versions.map(v => v.name).join(', ')
+                      : <span className="text-gray-400">Không có</span>
+                    }
+                  </td> */}
                   <td className='px-4 py-2'>
                     {movie.is_deleted ? (
                       <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
@@ -204,6 +229,7 @@ export default function TableMovie() {
                         onClick={() => handleViewDetail(movie)}
                         title="Xem chi tiết"
                       >
+
                         <Info className='w-4 h-4' />
                       </button>
                       <button
@@ -211,6 +237,7 @@ export default function TableMovie() {
                         onClick={() => handleEditMovie(movie)}
                         title="Chỉnh sửa"
                       >
+                        
                         <Edit className='w-4 h-4' />
                       </button>
                       <button

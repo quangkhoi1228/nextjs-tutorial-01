@@ -78,16 +78,21 @@ export const useMovieManagement = (): UseMovieManagementReturn => {
         ...params
       };
 
-      const response: PaginatedResponse<Movie> = await MovieService.getAllMovies(searchParams);
-      
-      setMovies(response.data);
-      setTotalPages(response.totalPages);
-      setTotalMovies(response.total);
-      setCurrentPage(response.page);
+      const response = await MovieService.getAllMovies(searchParams);
+      if (Array.isArray(response)) {
+        setMovies(response);
+        setTotalPages(1);
+        setTotalMovies(response.length);
+        setCurrentPage(1);
+      } else {
+        setMovies(response.data);
+        setTotalPages(response.totalPages);
+        setTotalMovies(response.total);
+        setCurrentPage(response.page);
+      }
     } catch (err) {
       console.error('Error fetching movies:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch movies');
-      
       // Fallback to demo data if API fails
       setMovies([
         {
@@ -142,7 +147,7 @@ export const useMovieManagement = (): UseMovieManagementReturn => {
       const gernesData = await GerneService.getAllGernes();
       setGernes(gernesData);
       
-      console.log('Fetching versions...');
+      console.log('Fetching vers  ions...');
       const versionsData = await VersionService.getAllVersions();
       setVersions(versionsData);
       
@@ -160,6 +165,7 @@ export const useMovieManagement = (): UseMovieManagementReturn => {
         { id: 2, name: 'Viễn tưởng' },
         { id: 3, name: 'Phiêu lưu' }
       ]);
+      
       setVersions([
         { id: 1, name: '2D' },
         { id: 2, name: '3D' },

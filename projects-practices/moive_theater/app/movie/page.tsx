@@ -1,7 +1,7 @@
 'use client';
 import { useEffect } from 'react';
-import { useAuth } from '../hooks/useAuth';
-import { useMovieManagement } from '../hooks/useMovieManagement';
+import { useAuth } from './hooks/useAuth';
+import { useMovieManagement } from './hooks/useMovieManagement';
 import AddnewButton from './components/AddnewButton';
 import MovieModal from './components/MovieModal';
 import Pagination from './components/Pagination';
@@ -10,6 +10,7 @@ import TableMovie from './components/TableMovie';
 import Tilte from './components/Tilte';
 import usePagination from './components/usePagination';
 import UtilityContainer from './components/UtilityContainer';
+import AuthDebug from '../components/AuthDebug';
 
 function MoviePage() {
   const { currentPage, handlePrevious, handleNext } = usePagination();
@@ -23,17 +24,18 @@ function MoviePage() {
     refreshData,
   } = useMovieManagement();
 
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated, login, loading } = useAuth();
 
   useEffect(() => {
-    console.log(isAuthenticated);
-    if (!isAuthenticated) {
+    console.log('Auth status:', { isAuthenticated, loading });
+    if (!isAuthenticated && !loading) {
       login();
     }
-  }, [isAuthenticated, login]);
+  }, [isAuthenticated, login, loading]);
 
-  return isAuthenticated ? (
+  return (
     <section className='bg-white h-screen text-black overflow-y-auto'>
+      <AuthDebug />
       <Tilte />
       <UtilityContainer>
         <div className='self-start'>
@@ -64,8 +66,6 @@ function MoviePage() {
         onSuccess={refreshData}
       />
     </section>
-  ) : (
-    <div>Loading...</div>
   );
 }
 
