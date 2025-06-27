@@ -1,16 +1,24 @@
 'use client';
 
-import AddnewButton from '@/app/components/AddnewButton';
-import SearchInput from '@/app/components/SearchInput';
-import Tilte from '@/app/components/Tilte';
-import UtilityContainer from '@/app/components/UtilityContainer';
-import Toast from '@/app/components/Toast';
 import MovieForm from '@/app/admin/movie/components/MovieForm1';
 import MovieTable from '@/app/admin/movie/components/TableMovie1';
-import { getAllMovies, Movie, createMovie, updateMovie } from '@/app/admin/movie/services/movieService';
+import {
+  Actor,
+  createMovie,
+  Genre,
+  getAllMovies,
+  Movie,
+  updateMovie,
+  UpdateMovieDto,
+  Version,
+} from '@/app/admin/movie/services/movieService';
+import AddnewButton from '@/app/components/AddnewButton';
+import AdminNavbar from '@/app/components/AdminNavbar';
+import SearchInput from '@/app/components/SearchInput';
+import Toast from '@/app/components/Toast';
+import UtilityContainer from '@/app/components/UtilityContainer';
 import { handleApiError } from '@/app/utils/errorHandler';
 import { useEffect, useState } from 'react';
-import AdminNavbar from '@/app/components/AdminNavbar';
 
 interface ToastState {
   message: string;
@@ -23,11 +31,13 @@ export default function MoviePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredMovies, setFilteredMovies] = useState<Movie[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  const [selectedMovie, setSelectedMovie] = useState<UpdateMovieDto | null>(
+    null
+  );
   const [toast, setToast] = useState<ToastState>({
     message: '',
     type: 'info',
-    isVisible: false
+    isVisible: false,
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -35,12 +45,15 @@ export default function MoviePage() {
     fetchMovies();
   }, []);
 
-  const showToast = (message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
+  const showToast = (
+    message: string,
+    type: 'success' | 'error' | 'warning' | 'info' = 'info'
+  ) => {
     setToast({ message, type, isVisible: true });
   };
 
   const hideToast = () => {
-    setToast(prev => ({ ...prev, isVisible: false }));
+    setToast((prev) => ({ ...prev, isVisible: false }));
   };
 
   const fetchMovies = async () => {
@@ -72,41 +85,46 @@ export default function MoviePage() {
 
   const handleEditMovie = (movie: Movie) => {
     // Transform movie data for form display
-    const formData = {
+    const formData: UpdateMovieDto = {
       ...movie,
       // Convert arrays of objects to arrays of IDs for form
-      actors: Array.isArray(movie.actors) ? movie.actors.map((actor: any) => actor.id) : [],
-      gernes: Array.isArray(movie.gernes) ? movie.gernes.map((genre: any) => genre.id) : [],
-      versions: Array.isArray(movie.versions) ? movie.versions.map((version: any) => version.id) : []
+      actors: movie.actors?.map((actor: Actor) => actor.id) || [],
+      gernes: movie.gernes?.map((genre: Genre) => genre.id) || [],
+      versions: movie.versions?.map((version: Version) => version.id) || [],
     };
     setSelectedMovie(formData);
     setIsModalOpen(true);
   };
 
-  const handleSubmitMovie = async (data: any) => {
+  const handleSubmitMovie = async (data: UpdateMovieDto) => {
+    console.log(data);
     try {
       setIsLoading(true);
-      
+
       // Transform data to match server expectations
-      const transformedData = {
+      const transformedData: UpdateMovieDto = {
         name: data.name,
         content: data.content,
         director: data.director,
-        duration: parseInt(data.duration, 10),
+        duration: +data.duration,
         nation: data.nation,
-        is_deleted: data.is_deleted === 'true',
+        is_deleted: data.is_deleted,
         from_date: data.from_date,
         to_date: data.to_date,
         trailer: data.trailer,
         limited_age: data.limited_age,
         production_company: data.production_company,
         thumbnail: data.thumbnail,
-        banner: data.banner
+        banner: data.banner,
+        actors: data.actors,
+        gernes: data.gernes,
+        versions: data.versions,
         // Removed actors, gernes, versions as server doesn't expect them
       };
 
       if (selectedMovie && selectedMovie.id) {
         // Editing existing movie
+        transformedData.id = selectedMovie.id;
         await updateMovie(selectedMovie.id, transformedData);
         showToast('Cập nhật phim thành công!', 'success');
       } else {
@@ -114,7 +132,7 @@ export default function MoviePage() {
         await createMovie(transformedData);
         showToast('Thêm phim mới thành công!', 'success');
       }
-      
+
       await fetchMovies();
       setIsModalOpen(false);
       setSelectedMovie(null); // Reset selected movie after submit
@@ -126,19 +144,22 @@ export default function MoviePage() {
     }
   };
 
+  useEffect(() => {
+    console.log('trang web load lại', searchQuery);
+  }, [searchQuery]);
+
   return (
     <>
       <AdminNavbar />
-      <section className="p-4">
-    
+      <section className='p-4'>
         <UtilityContainer>
           <AddnewButton onClick={handleAddNew} />
-          <div className="flex-1 flex justify-end">
+          <div className='flex-1 flex justify-end'>
             <SearchInput
-              className="max-w-xs"
+              className='max-w-xs '
               value={searchQuery}
               onChange={handleSearch}
-              placeholder="Tìm kiếm theo tên phim..."
+              placeholder='Tìm kiếm theo tên phim...'
             />
           </div>
         </UtilityContainer>
