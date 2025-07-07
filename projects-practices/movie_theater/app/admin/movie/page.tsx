@@ -18,7 +18,7 @@ import SearchInput from '@/app/components/SearchInput';
 import Toast from '@/app/components/Toast';
 import UtilityContainer from '@/app/components/UtilityContainer';
 import { handleApiError } from '@/app/utils/errorHandler';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface ToastState {
   message: string;
@@ -40,6 +40,7 @@ export default function MoviePage() {
     isVisible: false,
   });
   const [isLoading, setIsLoading] = useState(false);
+  const movieName = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchMovies();
@@ -81,7 +82,16 @@ export default function MoviePage() {
   const handleAddNew = () => {
     setSelectedMovie(null); // tạo mới
     setIsModalOpen(true);
+    setTimeout(() => {
+      console.log('movieName.current: ', movieName.current);
+      movieName.current?.scrollIntoView({ behavior: 'smooth' });
+      movieName.current?.classList.add('border-red-500');
+    }, 10);
   };
+
+  useEffect(() => {
+    console.log('movieName.current: ', movieName.current);
+  }, [movieName]);
 
   const handleEditMovie = (movie: Movie) => {
     // Transform movie data for form display
@@ -167,6 +177,7 @@ export default function MoviePage() {
         <MovieTable movies={filteredMovies} onEdit={handleEditMovie} />
 
         <MovieForm
+          testRef={movieName}
           open={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           onSubmit={handleSubmitMovie}

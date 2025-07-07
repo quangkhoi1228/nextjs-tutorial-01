@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+'use client';
+import { useEffect, useRef, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { getAllActors } from '../services/actorService';
+import { getAllGernes } from '../services/gerneService';
+import { Genre, UpdateMovieDto } from '../services/movieService';
+import { getAllVersions } from '../services/versionService';
 import Modal from './Modal';
 import InputField from './form/InputField';
 import MultiSelectField from './form/MultiSelectField';
-import { getAllActors } from '../services/actorService';
-import { getAllGernes } from '../services/gerneService';
-import { getAllVersions } from '../services/versionService';
-import { Genre, UpdateMovieDto } from '../services/movieService';
 
 interface Option {
   id: number;
@@ -18,19 +19,22 @@ interface MovieFormProps {
   onSubmit: (data: UpdateMovieDto) => void;
   defaultValues: UpdateMovieDto;
   isLoading?: boolean;
+  testRef?: React.RefObject<HTMLInputElement | null>;
 }
 
-export default function MovieForm({
+function MovieForm({
   open,
   onClose,
   onSubmit,
   defaultValues,
   isLoading,
+  testRef,
 }: MovieFormProps) {
   const { register, handleSubmit, control, reset } = useForm({ defaultValues });
   const [actors, setActors] = useState<Option[]>([]);
   const [genres, setGenres] = useState<Option[]>([]);
   const [versions, setVersion] = useState<Option[]>([]);
+  const movieName = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     reset(defaultValues);
@@ -43,19 +47,33 @@ export default function MovieForm({
     }
   }, [open, defaultValues, reset]);
 
+  useEffect(() => {
+    console.log('testRef: ', testRef);
+  }, [testRef]);
+
+  // useEffect(() => {
+  //   console.log('open: ', open);
+  //   if (open) {
+  //     movieName.current?.focus()
+  //     // focus movie name
+  //   }
+  // }, [open]);
   // const handleMultiSelect = (field: string, values: string[]) => {
   //     setValue(field, values.map(Number));
   // }
-  if (!open) return null;
+  // if (!open) return null;
 
   return (
     <Modal open={open} onClose={onClose}>
       <h2 className='text-lg font-bold mb-4'>Thêm / Sửa phim</h2>
+      <button onClick={() => movieName.current?.focus()}>focus</button>
+
       <form
         onSubmit={handleSubmit(onSubmit)}
         className='space-y-4
         max-h-[70vh] overflow-y-auto'
       >
+        {/* <input type='text' ref={movieName} /> */}
         <InputField label='Tên phim' name='name' register={register} required />
         <InputField
           label='Mô tả'
@@ -168,7 +186,12 @@ export default function MovieForm({
           register={register}
         />
         <InputField label='Thumbnail' name='thumbnail' register={register} />
-        <InputField label='Banner' name='banner' register={register} />
+        <InputField
+          label='Banner'
+          name='banner'
+          register={register}
+          inputRef={testRef}
+        />
         <div className='flex justify-end gap-2'>
           <button
             type='button'
@@ -190,3 +213,4 @@ export default function MovieForm({
     </Modal>
   );
 }
+export default MovieForm;

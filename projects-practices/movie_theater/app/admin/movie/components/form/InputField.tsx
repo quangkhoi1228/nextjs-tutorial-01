@@ -5,6 +5,7 @@ import { UpdateMovieDto } from '../../services/movieService';
 interface InputFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;
   register: UseFormRegister<UpdateMovieDto>;
+  inputRef?: React.RefObject<HTMLInputElement | null>;
   name:
     | 'name'
     | 'content'
@@ -29,9 +30,9 @@ export default function InputField({
   register,
   name,
   type = 'text',
+  inputRef,
   ...props
 }: InputFieldProps) {
-  console.log(name, type);
   return (
     <div>
       <label className='block font-medium'>{label}</label>
@@ -40,6 +41,7 @@ export default function InputField({
         type={type}
         className='border p-2 w-full'
         {...props}
+        ref={inputRef}
       ></input>
     </div>
   );
