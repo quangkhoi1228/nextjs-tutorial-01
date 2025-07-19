@@ -2,6 +2,7 @@ import React from 'react';
 import { CinemaRoom, TableCinemaRoomProps } from '../types';
 
 const TableCinemaRoom: React.FC<TableCinemaRoomProps> = ({ rooms, onEdit, onDetail, onSoftDelete }) => {
+  console.log(rooms);
   return (
     <div className="overflow-x-auto rounded-lg shadow-md bg-white dark:bg-[#23232a]">
       <table className="min-w-full text-sm text-left">
