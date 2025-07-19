@@ -1,48 +1,32 @@
-import { InputHTMLAttributes } from 'react';
-import { UseFormRegister } from 'react-hook-form';
-import { UpdateMovieDto } from '../../services/movieService';
+// import { InputHTMLAttributes } from 'react';
+// import { UseFormRegister } from 'react-hook-form';
 
-interface InputFieldProps extends InputHTMLAttributes<HTMLInputElement> {
-  label: string;
-  register: UseFormRegister<UpdateMovieDto>;
-  inputRef?: React.RefObject<HTMLInputElement | null>;
-  name:
-    | 'name'
-    | 'content'
-    | 'director'
-    | 'duration'
-    | 'from_date'
-    | 'to_date'
-    | 'production_company'
-    | 'thumbnail'
-    | 'banner'
-    | 'limited_age'
-    | 'trailer'
-    | 'nation'
-    | 'is_deleted'
-    | 'actors'
-    | 'gernes'
-    | 'versions';
-  type?: string;
-}
-export default function InputField({
-  label,
-  register,
-  name,
-  type = 'text',
-  inputRef,
-  ...props
-}: InputFieldProps) {
-  return (
-    <div>
-      <label className='block font-medium'>{label}</label>
-      <input
-        {...register(name)}
-        type={type}
-        className='border p-2 w-full'
-        {...props}
-        ref={inputRef}
-      ></input>
-    </div>
-  );
-}
+// interface InputFieldProps<T> extends InputHTMLAttributes<HTMLInputElement> {
+//   label: string;
+//   register: UseFormRegister<T>;
+//   name: keyof T | string;
+//   type?: string;
+//   inputRef?: React.Ref<HTMLInputElement>;
+// }
+
+// export default function InputField<T>({
+//   label,
+//   register,
+//   name,
+//   type = 'text',
+//   inputRef,
+//   ...props
+// }: InputFieldProps<T>) {
+//   return (
+//     <div>
+//       <label className='block font-medium'>{label}</label>
+//       <input
+//         {...register(name as any)}
+//         type={type}
+//         ref={inputRef}
+//         className='border p-2 w-full'
+//         {...props}
+//       />
+//     </div>
+//   );
+// }

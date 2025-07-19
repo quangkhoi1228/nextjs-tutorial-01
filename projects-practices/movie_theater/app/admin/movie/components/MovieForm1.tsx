@@ -1,13 +1,11 @@
-'use client';
 import { useEffect, useRef, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { getAllActors } from '../services/actorService';
-import { getAllGernes } from '../services/gerneService';
-import { Genre, UpdateMovieDto } from '../services/movieService';
-import { getAllVersions } from '../services/versionService';
-import Modal from './Modal';
-import InputField from './form/InputField';
-import MultiSelectField from './form/MultiSelectField';
+import { useForm, Controller } from 'react-hook-form';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+
+import { Genre, getAllActors, getAllGernes, getAllVersions, UpdateMovieDto } from '../services/movieService';
 
 interface Option {
   id: number;
@@ -19,22 +17,28 @@ interface MovieFormProps {
   onSubmit: (data: UpdateMovieDto) => void;
   defaultValues: UpdateMovieDto;
   isLoading?: boolean;
-  testRef?: React.RefObject<HTMLInputElement | null>;
 }
 
-function MovieForm({
+export default function MovieForm({
   open,
   onClose,
   onSubmit,
   defaultValues,
   isLoading,
-  testRef,
 }: MovieFormProps) {
-  const { register, handleSubmit, control, reset } = useForm({ defaultValues });
+  // const { register, handleSubmit, control, reset } = useForm<UpdateMovieDto>({ defaultValues });
+  const { register, handleSubmit, control, reset } = useForm<UpdateMovieDto>({
+    defaultValues: {
+      ...defaultValues,
+      actors: defaultValues.actors || [],
+      gernes: defaultValues.gernes || [],
+      versions: defaultValues.versions || [],
+    },
+  });
   const [actors, setActors] = useState<Option[]>([]);
   const [genres, setGenres] = useState<Option[]>([]);
   const [versions, setVersion] = useState<Option[]>([]);
-  const movieName = useRef<HTMLInputElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     reset(defaultValues);
@@ -44,173 +48,226 @@ function MovieForm({
         setGenres(data.map((g: Genre) => ({ id: g.id, name: g.genre_name })))
       );
       getAllVersions().then(setVersion);
+      setTimeout(() => {
+        nameInputRef.current?.focus();
+      }, 100);
     }
   }, [open, defaultValues, reset]);
 
-  useEffect(() => {
-    console.log('testRef: ', testRef);
-  }, [testRef]);
-
-  // useEffect(() => {
-  //   console.log('open: ', open);
-  //   if (open) {
-  //     movieName.current?.focus()
-  //     // focus movie name
-  //   }
-  // }, [open]);
-  // const handleMultiSelect = (field: string, values: string[]) => {
-  //     setValue(field, values.map(Number));
-  // }
-  // if (!open) return null;
+  if (!open) return null;
 
   return (
-    <Modal open={open} onClose={onClose}>
-      <h2 className='text-lg font-bold mb-4'>Thêm / Sửa phim</h2>
-      <button onClick={() => movieName.current?.focus()}>focus</button>
-
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className='space-y-4
-        max-h-[70vh] overflow-y-auto'
-      >
-        {/* <input type='text' ref={movieName} /> */}
-        <InputField label='Tên phim' name='name' register={register} required />
-        <InputField
-          label='Mô tả'
-          name='content'
-          register={register}
-        ></InputField>
-        <InputField
-          label='Đạo diễn'
-          name='director'
-          register={register}
-        ></InputField>
-        <InputField
-          label='Thời lượng'
-          name='duration'
-          register={register}
-          type='number'
-        ></InputField>
-        <Controller
-          control={control}
-          name='gernes'
-          render={({ field }) => (
-            <MultiSelectField
-              label='Thể loại'
-              options={genres}
-              onChange={(e) =>
-                field.onChange(
-                  Array.from(e.target.selectedOptions, (o) => Number(o.value))
-                )
-              }
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl">
+        <DialogTitle>Thêm / Sửa phim</DialogTitle>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-4 max-h-[70vh] overflow-y-auto"
+        >
+          <div>
+            <label className="block font-medium">Tên phim</label>
+            {/* <Input {...register('name', { required: true })} ref={nameInputRef} /> */}
+            <Input
+              {...register('name', { required: true })}
+              ref={(e) => {
+                register('name').ref(e);     // để react-hook-form hoạt động
+                nameInputRef.current = e;    // để bạn focus
+              }}
             />
-          )}
-        />
-        <Controller
-          control={control}
-          name='actors'
-          render={({ field }) => (
-            <MultiSelectField
-              label='Diễn Viên'
-              options={actors}
-              onChange={(e) =>
-                field.onChange(
-                  Array.from(e.target.selectedOptions, (o) => Number(o.value))
-                )
-              }
+          </div>
+          <div>
+            <label className="block font-medium">Mô tả</label>
+            <Textarea {...register('content')} />
+          </div>
+          <div>
+            <label className="block font-medium">Đạo diễn</label>
+            <Input {...register('director')} />
+          </div>
+          <div>
+            <label className="block font-medium">Thời lượng</label>
+            <Input
+              type="number"
+              min={0}
+              {...register('duration', { valueAsNumber: true, min: 0 })}
             />
-          )}
-        />
+          </div>
 
-        <Controller
-          control={control}
-          name='versions'
-          render={({ field }) => (
-            <MultiSelectField
-              label='Phiên Bản'
-              options={versions}
-              onChange={(e) =>
-                field.onChange(
-                  Array.from(e.target.selectedOptions, (o) => Number(o.value))
-                )
-              }
-            />
-          )}
-        />
-        <InputField
-          label='Quốc gia '
-          name='nation'
-          register={register}
-          type='value'
-        />
-
-        <div>
-          <label className='block font-medium'>Trang thai</label>
-          <select {...register('is_deleted')} className='border p-2 w-full' />
-          <option value='false'>cong khai</option>
-          <option value='true'>Da xoa</option>
-        </div>
-        <div className='flex gap-4'>
-          <InputField
-            label='tu ngay'
-            name='from_date'
-            register={register}
-            type='date'
+          <Controller
+            control={control}
+            name="actors"
+            render={({ field: { onChange, value = [] } }) => {
+              const [search, setSearch] = useState('');
+              const filteredActors = actors.filter(a =>
+                a.name.toLowerCase().includes(search.toLowerCase())
+              );
+              const handleCheck = (id: number) => {
+                if (value.includes(id)) {
+                  onChange(value.filter((v: number) => v !== id));
+                } else {
+                  onChange([...value, id]);
+                }
+              };
+              return (
+                <div>
+                  <label className="block font-medium mb-1">Diễn viên</label>
+                  <input
+                    type="text"
+                    placeholder="Tìm diễn viên..."
+                    className="border p-2 w-full mb-2"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                  />
+                  <div className="max-h-40 overflow-y-auto border rounded p-2">
+                    {filteredActors.length === 0 && (
+                      <div className="text-gray-500 text-sm">Không tìm thấy diễn viên</div>
+                    )}
+                    {filteredActors.map(a => (
+                      <label key={a.id} className="flex items-center gap-2 mb-1 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={value.includes(a.id)}
+                          onChange={() => handleCheck(a.id)}
+                        />
+                        <span>{a.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              );
+            }}
           />
-          <InputField
-            label='den ngay'
-            name='to_date'
-            register={register}
-            type='date'
+          <Controller
+            control={control}
+            name="versions"
+            render={({ field: { onChange, value = [] } }) => {
+              const [search, setSearch] = useState('');
+              const filteredVersions = versions.filter(v =>
+                v.name.toLowerCase().includes(search.toLowerCase())
+              );
+              const handleCheck = (id: number) => {
+                if (value.includes(id)) {
+                  onChange(value.filter((v: number) => v !== id));
+                } else {
+                  onChange([...value, id]);
+                }
+              };
+              return (
+                <div>
+                  <label className="block font-medium mb-1">Phiên bản</label>
+                  <input
+                    type="text"
+                    placeholder="Tìm phiên bản..."
+                    className="border p-2 w-full mb-2"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                  />
+                  <div className="max-h-40 overflow-y-auto border rounded p-2">
+                    {filteredVersions.length === 0 && (
+                      <div className="text-gray-500 text-sm">Không tìm thấy phiên bản</div>
+                    )}
+                    {filteredVersions.map(v => (
+                      <label key={v.id} className="flex items-center gap-2 mb-1 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={value.includes(v.id)}
+                          onChange={() => handleCheck(v.id)}
+                        />
+                        <span>{v.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              );
+            }}
           />
-        </div>
-        {/* <InputField label="Trailer" name="trailer" register={register} type='url' pattern={{
-    value: /^(https?:\/\/)?([\w.-]+)+(:\d+)?(\/([\w/_.]*)?)?$/,
-    message: "Vui lòng nhập đường dẫn hợp lệ"
-  }} /> */}
-        <InputField
-          label='Trailer'
-          name='trailer'
-          register={register}
-          type='url'
-        />
-        <InputField
-          label='Giới hạn tuổi'
-          name='limited_age'
-          register={register}
-          type='string'
-        />
-        <InputField
-          label='Công ty sản xuất'
-          name='production_company'
-          register={register}
-        />
-        <InputField label='Thumbnail' name='thumbnail' register={register} />
-        <InputField
-          label='Banner'
-          name='banner'
-          register={register}
-          inputRef={testRef}
-        />
-        <div className='flex justify-end gap-2'>
-          <button
-            type='button'
-            onClick={onClose}
-            className='px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50'
-            disabled={isLoading}
-          >
-            Hủy
-          </button>
-          <button
-            type='submit'
-            className='bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed'
-            disabled={isLoading}
-          >
-            {isLoading ? 'Đang xử lý...' : 'Lưu'}
-          </button>
-        </div>
-      </form>
-    </Modal>
+          <Controller
+            control={control}
+            name="gernes"
+            render={({ field: { onChange, value = [] } }) => {
+              const [search, setSearch] = useState('');
+              const filteredGenres = genres.filter(g =>
+                g.name.toLowerCase().includes(search.toLowerCase())
+              );
+              const handleCheck = (id: number) => {
+                if (value.includes(id)) {
+                  onChange(value.filter((v: number) => v !== id));
+                } else {
+                  onChange([...value, id]);
+                }
+              };
+              return (
+                <div>
+                  <label className="block font-medium mb-1">Thể loại</label>
+                  <input
+                    type="text"
+                    placeholder="Tìm thể loại..."
+                    className="border p-2 w-full mb-2"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                  />
+                  <div className="max-h-40 overflow-y-auto border rounded p-2">
+                    {filteredGenres.length === 0 && (
+                      <div className="text-gray-500 text-sm">Không tìm thấy thể loại</div>
+                    )}
+                    {filteredGenres.map(g => (
+                      <label key={g.id} className="flex items-center gap-2 mb-1 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={value.includes(g.id)}
+                          onChange={() => handleCheck(g.id)}
+                        />
+                        <span>{g.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              );
+            }}
+          />
+          <div>
+            <label className="block font-medium">Quốc gia</label>
+            <Input {...register('nation')} />
+          </div>
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="block font-medium">Từ ngày</label>
+              <Input type="date" {...register('from_date')} />
+            </div>
+            <div className="flex-1">
+              <label className="block font-medium">Đến ngày</label>
+              <Input type="date" {...register('to_date')} />
+            </div>
+          </div>
+          <div>
+            <label className="block font-medium">Trailer</label>
+            <Input type="url" {...register('trailer')} />
+          </div>
+          <div>
+            <label className="block font-medium">Giới hạn tuổi</label>
+            <Input {...register('limited_age')} />
+          </div>
+          <div>
+            <label className="block font-medium">Công ty sản xuất</label>
+            <Input {...register('production_company')} />
+          </div>
+          <div>
+            <label className="block font-medium">Thumbnail</label>
+            <Input {...register('thumbnail')} />
+          </div>
+          <div>
+            <label className="block font-medium">Banner</label>
+            <Input {...register('banner')} />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading}>
+              Hủy
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? 'Đang xử lý...' : 'Lưu'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
-export default MovieForm;
